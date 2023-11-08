@@ -1,0 +1,102 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Trivy Repository Scan example-voting-app
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ "main" ]
+  #schedule:
+  #  - cron: '*/1440 * * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+    name: Build
+    runs-on: "ubuntu-22.04"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create SARIF Files Directory
+        run: mkdir -p sarif-files
+
+      - name: Run Trivy vulnerability scanner on Postgres
+        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        with:
+          category: 'image-scanning'
+          image-ref: 'postgres:15-alpine'
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'postgres-scan.sarif'
+
+      - name: Run Trivy vulnerability scanner on Redis
+        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        with:
+          category: 'image-scanning'
+          image-ref: 'redis:alpine'
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'redis-scan.sarif'
+
+      - name: Run Trivy vulnerability scanner on Result
+        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        with:
+          category: 'image-scanning'
+          image-ref: 'dockersamples/examplevotingapp_result'
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'result-scan.sarif'
+
+      - name: Run Trivy vulnerability scanner on Vote
+        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        with:
+          category: 'image-scanning'
+          image-ref: 'dockersamples/examplevotingapp_vote'
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'vote-scan.sarif'
+
+      - name: Run Trivy vulnerability scanner on Worker
+        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        with:
+          category: 'image-scanning'
+          image-ref: 'dockersamples/examplevotingapp_worker'
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'worker-scan.sarif'
+
+      - name: Copy scan results to sarif-files directory
+        run: |
+          cp -r postgres-scan.sarif sarif-files
+          cp -r redis-scan.sarif sarif-files
+          cp -r result-scan.sarif sarif-files
+          cp -r vote-scan.sarif sarif-files
+          cp -r worker-scan.sarif sarif-files
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          category: 'trivy-scanning'
+          sarif_file: sarif-files
+
+      - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          format: 'github'
+          output: 'dependency-results.sbom.json'
+          image-ref: '.'
+          github-pat: ${{ secrets.GITHUB_TOKEN }}
