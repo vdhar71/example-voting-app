@@ -1,0 +1,115 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Sysdig Repository Scan example-voting-app
+env:
+  SECURE_API_TOKEN: "ed9d8d1c-1bbc-4a50-849a-322dc80b26f7"
+  SYSDIG_SECURE_URL: "https://us2.app.sysdig.com/"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [ "main" ]
+  #schedule:
+  #  - cron: '*/1440 * * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+    name: Build
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create SARIF Files Directory
+        run: mkdir -p sarif-files
+
+      - name: Run Sysdig vulnerability scanner on Postgres
+        uses: sysdiglabs/scan-action@v3
+        with:
+          category: 'postgres-scanning'
+          image-tag: 'postgres:15-alpine'
+          sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_TOKEN }}
+          sysdig-secure-url: "https://us2.app.sysdig.com"
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'postgres-scan.sarif'
+
+      - name: Run Sysdig vulnerability scanner on Redis
+        uses: sysdiglabs/scan-action@v3
+        with:
+          category: 'redis-scanning'
+          image-tag: 'redis:alpine'
+          sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_TOKEN }}
+          sysdig-secure-url: "https://us2.app.sysdig.com"
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'redis-scan.sarif'
+
+      - name: Run Sysdig vulnerability scanner on Result
+        uses: sysdiglabs/scan-action@v3
+        with:
+          category: 'result-scanning'
+          image-tag: 'dockersamples/examplevotingapp_result'
+          sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_TOKEN }}
+          sysdig-secure-url: "https://us2.app.sysdig.com"
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'result-scan.sarif'
+
+      - name: Run Sysdig vulnerability scanner on Vote
+        uses: sysdiglabs/scan-action@v3
+        with:
+          category: 'vote-scanning'
+          image-tag: 'dockersamples/examplevotingapp_vote'
+          sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_TOKEN }}
+          sysdig-secure-url: "https://us2.app.sysdig.com"
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'vote-scan.sarif'
+
+      - name: Run Sysdig vulnerability scanner on Worker
+        uses: sysdiglabs/scan-action@v3
+        with:
+          category: 'worker-scanning'
+          image-tag: 'dockersamples/examplevotingapp_worker'
+          sysdig-secure-token: ${{ secrets.SYSDIG_SECURE_TOKEN }}
+          sysdig-secure-url: "https://us2.app.sysdig.com"
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'worker-scan.sarif'
+
+      - name: Copy scan results to sarif-files directory
+        run: |
+          cp -r postgres-scan.sarif sarif-files
+          cp -r redis-scan.sarif sarif-files
+          cp -r result-scan.sarif sarif-files
+          cp -r vote-scan.sarif sarif-files
+          cp -r worker-scan.sarif sarif-files
+
+      - name: Upload Sysdig scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          category: 'sysdig-scanning'
+          sarif_file: sarif-files
+
+      - name: Run Aqua in GitHub SBOM mode and submit results to Dependency Graph
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          format: 'github'
+          output: 'dependency-results.sbom.json'
+          image-ref: '.'
+          github-pat: ${{ secrets.GITHUB_TOKEN }}
