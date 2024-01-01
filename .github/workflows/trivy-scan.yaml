@@ -33,7 +33,7 @@ jobs:
         run: mkdir -p sarif-files
 
       - name: Run Trivy vulnerability scanner on Postgres
-        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        uses: aquasecurity/trivy-action@91713af97dc80187565512baba96e4364e983601
         with:
           category: 'image-scanning'
           image-ref: 'postgres:15-alpine'
@@ -42,7 +42,7 @@ jobs:
           output: 'postgres-scan.sarif'
 
       - name: Run Trivy vulnerability scanner on Redis
-        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        uses: aquasecurity/trivy-action@91713af97dc80187565512baba96e4364e983601
         with:
           category: 'image-scanning'
           image-ref: 'redis:alpine'
@@ -51,7 +51,7 @@ jobs:
           output: 'redis-scan.sarif'
 
       - name: Run Trivy vulnerability scanner on Result
-        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        uses: aquasecurity/trivy-action@91713af97dc80187565512baba96e4364e983601
         with:
           category: 'image-scanning'
           image-ref: 'dockersamples/examplevotingapp_result'
@@ -60,7 +60,7 @@ jobs:
           output: 'result-scan.sarif'
 
       - name: Run Trivy vulnerability scanner on Vote
-        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        uses: aquasecurity/trivy-action@91713af97dc80187565512baba96e4364e983601
         with:
           category: 'image-scanning'
           image-ref: 'dockersamples/examplevotingapp_vote'
@@ -69,7 +69,7 @@ jobs:
           output: 'vote-scan.sarif'
 
       - name: Run Trivy vulnerability scanner on Worker
-        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        uses: aquasecurity/trivy-action@91713af97dc80187565512baba96e4364e983601
         with:
           category: 'image-scanning'
           image-ref: 'dockersamples/examplevotingapp_worker'
