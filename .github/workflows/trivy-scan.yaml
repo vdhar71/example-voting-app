@@ -86,7 +86,7 @@ jobs:
           cp -r worker-scan.sarif sarif-files
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           category: 'trivy-scanning'
