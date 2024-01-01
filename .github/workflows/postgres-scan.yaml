@@ -60,7 +60,7 @@ jobs:
           python3 ${GITHUB_WORKSPACE}/sysdig-to-sarif.py postgres.json > postgres.sarif
 
       - name: Upload scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: postgres.sarif
