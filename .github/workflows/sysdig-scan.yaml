@@ -36,7 +36,7 @@ jobs:
         run: mkdir -p sarif-files
 
       - name: Run Sysdig vulnerability scanner on Postgres
-        uses: sysdiglabs/scan-action@v3
+        uses: sysdiglabs/scan-action@v4
         with:
           category: 'postgres-scanning'
           image-tag: 'postgres:15-alpine'
@@ -47,7 +47,7 @@ jobs:
           output: 'postgres-scan.sarif'
 
       - name: Run Sysdig vulnerability scanner on Redis
-        uses: sysdiglabs/scan-action@v3
+        uses: sysdiglabs/scan-action@v4
         with:
           category: 'redis-scanning'
           image-tag: 'redis:alpine'
@@ -58,7 +58,7 @@ jobs:
           output: 'redis-scan.sarif'
 
       - name: Run Sysdig vulnerability scanner on Result
-        uses: sysdiglabs/scan-action@v3
+        uses: sysdiglabs/scan-action@v4
         with:
           category: 'result-scanning'
           image-tag: 'dockersamples/examplevotingapp_result'
@@ -69,7 +69,7 @@ jobs:
           output: 'result-scan.sarif'
 
       - name: Run Sysdig vulnerability scanner on Vote
-        uses: sysdiglabs/scan-action@v3
+        uses: sysdiglabs/scan-action@v4
         with:
           category: 'vote-scanning'
           image-tag: 'dockersamples/examplevotingapp_vote'
@@ -80,7 +80,7 @@ jobs:
           output: 'vote-scan.sarif'
 
       - name: Run Sysdig vulnerability scanner on Worker
-        uses: sysdiglabs/scan-action@v3
+        uses: sysdiglabs/scan-action@v4
         with:
           category: 'worker-scanning'
           image-tag: 'dockersamples/examplevotingapp_worker'
